@@ -142,43 +142,27 @@ init()
 	
 	// Create a vertex array object
 	glGenVertexArrays( 8, vao );
-// --------------------------------------------------------------------
-	// Bind first cube
-	glBindVertexArray( vao[0] );
-	// Initialize a buffer object
-	glGenBuffers( 1, &buffer[0]);
-	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
-	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
-	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
-	
-	// set up shader variables
-	vPosition[0] = glGetAttribLocation( program, "vPosition" );
-	glEnableVertexAttribArray( vPosition[0] );
-	glVertexAttribPointer( vPosition[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
-	
-	vColor[0] = glGetAttribLocation( program, "vColor" );
-	glEnableVertexAttribArray( vColor[0] );
-	glVertexAttribPointer( vColor[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	
 // --------------------------------------------------------------------
-	// Bind second cube
-	glBindVertexArray( vao[1] );
-	// Initialize a buffer object
-	glGenBuffers( 1, &buffer[1]);
-	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
-	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
-	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
-
-	// set up shader variables
-	vPosition[1] = glGetAttribLocation( program, "vPosition" );
-	glEnableVertexAttribArray( vPosition[1] );
-	glVertexAttribPointer( vPosition[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
-	
-	vColor[1] = glGetAttribLocation( program, "vColor" );
-	glEnableVertexAttribArray( vColor[1] );
-	glVertexAttribPointer( vColor[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
+	for (int i = 0; i<8;i++)
+	{
+		glBindVertexArray( vao[i] );
+		glGenBuffers( 1, &buffer[i]);
+		glBindBuffer( GL_ARRAY_BUFFER, buffer[i] );
+		glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
+		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
+		glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
+		
+		// set up shader variables
+		vPosition[i] = glGetAttribLocation( program, "vPosition" );
+		glEnableVertexAttribArray( vPosition[i] );
+		glVertexAttribPointer( vPosition[i], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+		
+		vColor[i] = glGetAttribLocation( program, "vColor" );
+		glEnableVertexAttribArray( vColor[i] );
+		glVertexAttribPointer( vColor[i], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
+	}
+// --------------------------------------------------------------------
 
 	// Set current program object
 	glUseProgram( program );
@@ -209,21 +193,16 @@ display( void )
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//  Generate tha model-view matrix 0
-	model_view[0] = (RotateX( Theta[Xaxis] ) *
-						RotateY( Theta[Yaxis] ) *
-						RotateZ( Theta[Zaxis] ) *
-						Translate( centerOfGs[0] ));
-	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[0] );
-	glBindVertexArrayAPPLE(vao[0]);
-	glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
-	//  Generate tha model-view matrix 1
-	model_view[1] = (RotateX( Theta[Xaxis] ) *
-						RotateY( Theta[Yaxis] ) *
-						RotateZ( Theta[Zaxis] ) *
-						Translate( centerOfGs[1] ));
-	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[1] );
-	glBindVertexArrayAPPLE(vao[1]);
-	glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+	for (int i = 0; i<8;i++)
+	{
+		model_view[i] = (RotateX( Theta[Xaxis] ) *
+						 RotateY( Theta[Yaxis] ) *
+						 RotateZ( Theta[Zaxis] ) *
+						 Translate( centerOfGs[i] ));
+		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
+		glBindVertexArrayAPPLE(vao[i]);
+		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+	}
 	
 	glutSwapBuffers();
 }
