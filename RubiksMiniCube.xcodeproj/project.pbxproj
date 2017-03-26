@@ -8,23 +8,41 @@
 
 /* Begin PBXBuildFile section */
 		CC6D830D1E88327300C3E2BE /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CC6D830C1E88327300C3E2BE /* main.cpp */; };
+		CC6D83141E88328B00C3E2BE /* InitShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CC6D83131E88328B00C3E2BE /* InitShader.cpp */; };
+		CC6D83231E8832E800C3E2BE /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC6D83221E8832E800C3E2BE /* GLUT.framework */; };
+		CC6D83251E8832EE00C3E2BE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC6D83241E8832EE00C3E2BE /* OpenGL.framework */; };
+		CC6D83301E88335C00C3E2BE /* fshader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CC6D832E1E88335700C3E2BE /* fshader.glsl */; };
+		CC6D83311E88335C00C3E2BE /* vshader.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CC6D832F1E88335700C3E2BE /* vshader.glsl */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		CC6D83071E88327300C3E2BE /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
+				CC6D83301E88335C00C3E2BE /* fshader.glsl in CopyFiles */,
+				CC6D83311E88335C00C3E2BE /* vshader.glsl in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		CC6D83091E88327300C3E2BE /* RubiksMiniCube */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RubiksMiniCube; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC6D830C1E88327300C3E2BE /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		CC6D83131E88328B00C3E2BE /* InitShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InitShader.cpp; sourceTree = "<group>"; };
+		CC6D83221E8832E800C3E2BE /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		CC6D83241E8832EE00C3E2BE /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		CC6D83281E88334200C3E2BE /* Angel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Angel.h; path = RubiksMiniCube/Headers/Angel.h; sourceTree = SOURCE_ROOT; };
+		CC6D83291E88334200C3E2BE /* CheckError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CheckError.h; path = RubiksMiniCube/Headers/CheckError.h; sourceTree = SOURCE_ROOT; };
+		CC6D832A1E88334200C3E2BE /* mat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = mat.h; path = RubiksMiniCube/Headers/mat.h; sourceTree = SOURCE_ROOT; };
+		CC6D832B1E88334200C3E2BE /* patches.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = patches.h; path = RubiksMiniCube/Headers/patches.h; sourceTree = SOURCE_ROOT; };
+		CC6D832C1E88334200C3E2BE /* vec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vec.h; path = RubiksMiniCube/Headers/vec.h; sourceTree = SOURCE_ROOT; };
+		CC6D832D1E88334200C3E2BE /* vertices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vertices.h; path = RubiksMiniCube/Headers/vertices.h; sourceTree = SOURCE_ROOT; };
+		CC6D832E1E88335700C3E2BE /* fshader.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; name = fshader.glsl; path = RubiksMiniCube/Shaders/fshader.glsl; sourceTree = SOURCE_ROOT; };
+		CC6D832F1E88335700C3E2BE /* vshader.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; name = vshader.glsl; path = RubiksMiniCube/Shaders/vshader.glsl; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +50,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC6D83251E8832EE00C3E2BE /* OpenGL.framework in Frameworks */,
+				CC6D83231E8832E800C3E2BE /* GLUT.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -43,6 +63,7 @@
 			children = (
 				CC6D830B1E88327300C3E2BE /* RubiksMiniCube */,
 				CC6D830A1E88327300C3E2BE /* Products */,
+				CC6D83211E8832E800C3E2BE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -57,9 +78,45 @@
 		CC6D830B1E88327300C3E2BE /* RubiksMiniCube */ = {
 			isa = PBXGroup;
 			children = (
+				CC6D83131E88328B00C3E2BE /* InitShader.cpp */,
 				CC6D830C1E88327300C3E2BE /* main.cpp */,
+				CC6D83171E8832B200C3E2BE /* Shaders */,
+				CC6D831A1E8832C200C3E2BE /* Headers */,
 			);
 			path = RubiksMiniCube;
+			sourceTree = "<group>";
+		};
+		CC6D83171E8832B200C3E2BE /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				CC6D832E1E88335700C3E2BE /* fshader.glsl */,
+				CC6D832F1E88335700C3E2BE /* vshader.glsl */,
+			);
+			name = Shaders;
+			path = shaders;
+			sourceTree = "<group>";
+		};
+		CC6D831A1E8832C200C3E2BE /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				CC6D83281E88334200C3E2BE /* Angel.h */,
+				CC6D83291E88334200C3E2BE /* CheckError.h */,
+				CC6D832A1E88334200C3E2BE /* mat.h */,
+				CC6D832B1E88334200C3E2BE /* patches.h */,
+				CC6D832C1E88334200C3E2BE /* vec.h */,
+				CC6D832D1E88334200C3E2BE /* vertices.h */,
+			);
+			name = Headers;
+			path = include;
+			sourceTree = "<group>";
+		};
+		CC6D83211E8832E800C3E2BE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CC6D83241E8832EE00C3E2BE /* OpenGL.framework */,
+				CC6D83221E8832E800C3E2BE /* GLUT.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -120,6 +177,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC6D83141E88328B00C3E2BE /* InitShader.cpp in Sources */,
 				CC6D830D1E88327300C3E2BE /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
