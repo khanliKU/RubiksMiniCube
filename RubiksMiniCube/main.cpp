@@ -17,12 +17,25 @@ typedef vec4  point4;
 GLuint vao[8];
 GLuint buffer[8]; // try it
 
+// Model-view and projection matrices uniform location
+GLuint  ModelView, ModelViews[9], Projection;
+mat4  model_view;
+
 // Declare uniform cariable to be passed to Fragment Shader
 GLuint currentCubeColor;
 int currentCube;
 
 // Initialize Center of Gravity of the object
-vec3 centerOfG = vec3(0.0, 0.0 , 0.0);
+vec3 centerOfGs[8] = {
+	vec3(-0.25, -0.25 ,  0.25),
+	vec3(-0.25,  0.25 ,  0.25),
+	vec3( 0.25,  0.25 ,  0.25),
+	vec3( 0.25, -0.25 ,  0.25),
+	vec3(-0.25, -0.25 , -0.25),
+	vec3(-0.25,  0.25 , -0.25),
+	vec3( 0.25,  0.25 , -0.25),
+	vec3( 0.25, -0.25 , -0.25)
+};
 // RGBA olors
 
 // enumerate colors and create a color4 array as colors array
@@ -44,9 +57,6 @@ enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
 int  Axis = Yaxis;
 
 GLfloat  Theta[NumAxes] = { 0, 0, 0 }; // ??
-
-// Model-view and projection matrices uniform location
-GLuint  ModelView, ModelViews[9], Projection;
 
 //----------------------------------------------------------------------------
 
@@ -180,31 +190,15 @@ display( void )
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//  Generate tha model-view matrix
-	mat4  model_view = (Translate( centerOfG ) *
-						RotateX( Theta[Xaxis] ) *
+	//  Generate tha model-view matrix 0
+	model_view = (RotateX( Theta[Xaxis] ) *
 						RotateY( Theta[Yaxis] ) *
-						RotateZ( Theta[Zaxis] ) );
-	
-	// Scale(), Translate(), RotateX(), RotateY(), RotateZ(): user-defined functions in mat.h
+						RotateZ( Theta[Zaxis] ) *
+						Translate( centerOfGs[0] ));
 	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view );
-	
-	// Changes Vertex Array Object depending on users selection
-	/*
-	glBindVertexArrayAPPLE(vao[currentObject]);
-	if (currentObject == SPHERE)
-	{
-		glDrawArrays( GL_TRIANGLES, 0, sphere.numberOfVertices);
-	}
-	else if (currentObject == CUBE)
-	{
-		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
-	}
-	 
-	
-	 */
 	glBindVertexArrayAPPLE(vao[0]);
 	glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+	
 	glutSwapBuffers();
 }
 
@@ -213,9 +207,6 @@ display( void )
 void
 idle( void )
 {
-	
-	Theta[Axis] += 2;
-	
 	if ( Theta[Axis] > 360.0 )
 	{
 		Theta[Axis] -= 360.0;
@@ -252,7 +243,21 @@ void keyboard( unsigned char key,int x, int y )
 
 void specialCallBack(int key, int x, int y)
 {
+	// increase angular velocity
+	if (key == GLUT_KEY_RIGHT)
+		Theta[Zaxis]-=4;
 	
+	// decrease angular velocity
+	if (key == GLUT_KEY_LEFT)
+		Theta[Zaxis]+=4;
+	
+	// increase velocity
+	if (key == GLUT_KEY_UP)
+		Theta[Xaxis]-=4;
+	
+	// decrease velocity
+	if (key == GLUT_KEY_DOWN)
+		Theta[Xaxis]+=4;
 }
 
 //----------------------------------------------------------------------------
