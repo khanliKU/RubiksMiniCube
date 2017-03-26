@@ -18,8 +18,8 @@ GLuint vao[8];
 GLuint buffer[8]; // try it
 
 // Model-view and projection matrices uniform location
-GLuint  ModelView, ModelViews[9], Projection;
-mat4  model_view;
+GLuint  ModelView, Projection, vPosition[8], vColor[8];
+mat4  model_view[8];
 
 // Declare uniform cariable to be passed to Fragment Shader
 GLuint currentCubeColor;
@@ -142,7 +142,8 @@ init()
 	
 	// Create a vertex array object
 	glGenVertexArrays( 8, vao );
-	// Bind vao for SPHERE
+// --------------------------------------------------------------------
+	// Bind first cube
 	glBindVertexArray( vao[0] );
 	// Initialize a buffer object
 	glGenBuffers( 1, &buffer[0]);
@@ -151,17 +152,34 @@ init()
 	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
 	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
 	
-	// set up vertex arrays
-	GLuint vPosition = glGetAttribLocation( program, "vPosition" );
-	glEnableVertexAttribArray( vPosition );
-	glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+	// set up shader variables
+	vPosition[0] = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition[0] );
+	glVertexAttribPointer( vPosition[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 	
-	GLuint vColor = glGetAttribLocation( program, "vColor" );
-	glEnableVertexAttribArray( vColor );
-	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
+	vColor[0] = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColor[0] );
+	glVertexAttribPointer( vColor[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	
+// --------------------------------------------------------------------
+	// Bind second cube
+	glBindVertexArray( vao[1] );
+	// Initialize a buffer object
+	glGenBuffers( 1, &buffer[1]);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
+	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
+	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
+
+	// set up shader variables
+	vPosition[1] = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition[1] );
+	glVertexAttribPointer( vPosition[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 	
-	
+	vColor[1] = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColor[1] );
+	glVertexAttribPointer( vColor[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
+
 	// Set current program object
 	glUseProgram( program );
 	
@@ -191,12 +209,20 @@ display( void )
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//  Generate tha model-view matrix 0
-	model_view = (RotateX( Theta[Xaxis] ) *
+	model_view[0] = (RotateX( Theta[Xaxis] ) *
 						RotateY( Theta[Yaxis] ) *
 						RotateZ( Theta[Zaxis] ) *
 						Translate( centerOfGs[0] ));
-	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view );
+	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[0] );
 	glBindVertexArrayAPPLE(vao[0]);
+	glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+	//  Generate tha model-view matrix 1
+	model_view[1] = (RotateX( Theta[Xaxis] ) *
+						RotateY( Theta[Yaxis] ) *
+						RotateZ( Theta[Zaxis] ) *
+						Translate( centerOfGs[1] ));
+	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[1] );
+	glBindVertexArrayAPPLE(vao[1]);
 	glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 	
 	glutSwapBuffers();
