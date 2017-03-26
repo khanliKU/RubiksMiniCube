@@ -14,18 +14,91 @@ typedef vec4  color4;
 typedef vec4  point4;
 
 // Declare Vertex Array Object Array and Buffer Array
-GLuint vao[8];
-GLuint buffer[8]; // try it
+GLuint vao[2];
+GLuint buffer[2]; // try it
 
 // Model-view and projection matrices uniform location
-GLuint  ModelView, Projection, vPosition[8], vColor[8];
-mat4  model_view[8];
+GLuint  ModelView, Projection;
+mat4  model_view[9];
 
 // Declare uniform cariable to be passed to Fragment Shader
 GLuint currentCubeColor;
 int currentCube;
 
-// Initialize Center of Gravity of the object
+// RGBA olors
+// enumerate colors and create a color4 array as colors array
+enum color {ORANGE,RED,YELLOW,GREEN,BLUE,MAGENTA,BLACK,CYAN,NEUTRAL};
+color4 color[8] = {
+	color4( 1.0, 0.549, 0.0, 1.0 ),  // orange
+	color4( 1.0, 0.0, 0.0, 1.0 ),    // red
+	color4( 1.0, 1.0, 0.0, 1.0 ),    // yellow
+	color4( 0.0, 1.0, 0.0, 1.0 ),    // green
+	color4( 0.0, 0.0, 1.0, 1.0 ),    // blue
+	color4( 1.0, 0.0, 1.0, 1.0 ),    // magenta
+	color4( 0.0, 0.0, 0.0, 1.0 ),    // black
+	color4( 0.0, 1.0, 1.0, 1.0 )    // cyan
+};
+
+// Axis
+point4 axisV[6] = {
+	point4(0.0, 0.0, 0.0, 1.0),
+	point4(1.0, 0.0, 0.0, 1.0),
+	point4(0.0, 0.0, 0.0, 1.0),
+	point4(0.0, 1.0, 0.0, 1.0),
+	point4(0.0, 0.0, 0.0, 1.0),
+	point4(0.0, 0.0, 1.0, 1.0)
+};
+
+color4 axisC[6] = {
+	color[MAGENTA],
+	color[MAGENTA],
+	color[BLUE],
+	color[BLUE],
+	color[BLACK],
+	color[BLACK]
+};
+
+// color castig array
+mat4 colorCast[9] = {
+	mat4(0.0, 0.0, 0.0, 1.0, // orange
+		 0.0, 0.0, 0.0, 0.549,
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 1.0, // red
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 1.0, // yellow
+		 0.0, 0.0, 0.0, 1.0,
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 0.0, // green
+		 0.0, 0.0, 0.0, 1.0,
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 0.0, // blue
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 1.0, // magenta
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 0.0, // black
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(0.0, 0.0, 0.0, 0.0, // cyan
+		 0.0, 0.0, 0.0, 1.0,
+		 0.0, 0.0, 0.0, 1.0,
+		 0.0, 0.0, 0.0, 1.0),
+	mat4(1.0, 0.0, 0.0, 0.0, // neutral
+		 0.0, 1.0, 0.0, 0.0,
+		 0.0, 0.0, 1.0, 0.0,
+		 0.0, 0.0, 0.0, 1.0)
+};
+
+// Initialize Center of Gravity of the cubes
 vec3 centerOfGs[8] = {
 	vec3(-0.25, -0.25 ,  0.25),
 	vec3(-0.25,  0.25 ,  0.25),
@@ -36,34 +109,14 @@ vec3 centerOfGs[8] = {
 	vec3( 0.25,  0.25 , -0.25),
 	vec3( 0.25, -0.25 , -0.25)
 };
-// RGBA olors
-
-// enumerate colors and create a color4 array as colors array
-enum color {ORANGE,RED,YELLOW,GREEN,BLUE,MAGENTA,WHITE,CYAN,BLACK};
-color4 color[9] = {
-	color4( 1.0, 0.549, 0.0, 1.0 ),  // orange
-	color4( 1.0, 0.0, 0.0, 1.0 ),    // red
-	color4( 1.0, 1.0, 0.0, 1.0 ),    // yellow
-	color4( 0.0, 1.0, 0.0, 1.0 ),    // green
-	color4( 0.0, 0.0, 1.0, 1.0 ),    // blue
-	color4( 1.0, 0.0, 1.0, 1.0 ),    // magenta
-	color4( 1.0, 1.0, 1.0, 1.0 ),    // white
-	color4( 0.0, 1.0, 1.0, 1.0 ),    // cyan
-	color4( 0.0, 0.0, 0.0, 1.0 )     // black
-};
 
 // Array of rotation angles (in degrees) for each coordinate axis
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
 int  Axis = Yaxis;
 
-GLfloat  Theta[NumAxes] = { 0, 0, 0 }; // ??
+GLfloat  Theta[NumAxes] = { 15, -15, 0 }; // ??
 
 //----------------------------------------------------------------------------
-
-/* color menu function
- * changes color on user request
- * 8 predefined colors and a random color
- */
 
 // struct CUBE
 struct cube
@@ -139,30 +192,47 @@ init()
 	GLuint program = InitShader( "vshader.glsl", "fshader.glsl" );
 	ModelView = glGetUniformLocation( program, "ModelView" );
 	Projection = glGetUniformLocation( program, "Projection" );
+	currentCubeColor = glGetUniformLocation( program, "cubeColor" );
 	
 	// Create a vertex array object
-	glGenVertexArrays( 8, vao );
+	glGenVertexArrays( 2, vao );
 	
-// --------------------------------------------------------------------
-	for (int i = 0; i<8;i++)
-	{
-		glBindVertexArray( vao[i] );
-		glGenBuffers( 1, &buffer[i]);
-		glBindBuffer( GL_ARRAY_BUFFER, buffer[i] );
-		glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
-		glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
-		glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
-		
-		// set up shader variables
-		vPosition[i] = glGetAttribLocation( program, "vPosition" );
-		glEnableVertexAttribArray( vPosition[i] );
-		glVertexAttribPointer( vPosition[i], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
-		
-		vColor[i] = glGetAttribLocation( program, "vColor" );
-		glEnableVertexAttribArray( vColor[i] );
-		glVertexAttribPointer( vColor[i], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
-	}
-// --------------------------------------------------------------------
+	// create a cube
+	glBindVertexArray( vao[0] );
+	glGenBuffers( 1, &buffer[0]);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
+	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
+	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
+	
+	// set up shader variables
+	GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition );
+	glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+	
+	GLuint vColor = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColor );
+	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
+	
+	// create axis
+	glBindVertexArray( vao[1] );
+	glGenBuffers( 1, &buffer[1]);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer[1] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(axisC)+sizeof(axisV), NULL, GL_STATIC_DRAW );
+	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(axisV), axisV );
+	glBufferSubData( GL_ARRAY_BUFFER, sizeof(axisV), sizeof(axisC), axisC );
+	
+	// set up shader variables
+	GLuint vPositionAxis = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPositionAxis );
+	glVertexAttribPointer( vPositionAxis, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+	
+	GLuint vColorAxis = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColorAxis );
+	glVertexAttribPointer( vColorAxis, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(axisV)));
+	
+	glLineWidth(10.0);
+	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 
 	// Set current program object
 	glUseProgram( program );
@@ -192,7 +262,9 @@ display( void )
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+//	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 	//  Generate tha model-view matrix 0
+	glBindVertexArrayAPPLE(vao[0]);
 	for (int i = 0; i<8;i++)
 	{
 		model_view[i] = (RotateX( Theta[Xaxis] ) *
@@ -200,9 +272,14 @@ display( void )
 						 RotateZ( Theta[Zaxis] ) *
 						 Translate( centerOfGs[i] ));
 		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
-		glBindVertexArrayAPPLE(vao[i]);
 		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 	}
+	glBindVertexArrayAPPLE(vao[1]);
+	model_view[8] = (RotateX( Theta[Xaxis] ) *
+					 RotateY( Theta[Yaxis] ) *
+					 RotateZ( Theta[Zaxis] ));
+	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
+	glDrawArrays( GL_LINES, 0, 6);
 	
 	glutSwapBuffers();
 }
@@ -267,6 +344,71 @@ void specialCallBack(int key, int x, int y)
 
 //----------------------------------------------------------------------------
 
+void mouse( int button, int state, int x, int y )
+{
+	
+	if ( state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
+	{
+		glBindVertexArrayAPPLE(vao[0]);
+		for (int i = 0; i<8;i++)
+		{
+			model_view[i] = (RotateX( Theta[Xaxis] ) *
+							 RotateY( Theta[Yaxis] ) *
+							 RotateZ( Theta[Zaxis] ) *
+							 Translate( centerOfGs[i] ));
+			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
+			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
+			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+		}
+		
+		unsigned char pixel[4];
+		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+		printf("R: %d\nG: %d\nB: %d\nA: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
+		
+		
+/*
+		//glDrawBuffer(GL_BACK);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//		glUniform4f( Color, 0.0, 1.0, 0.0, 1.0 );
+		
+		glBindVertexArray( vao[0] );
+//		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view1);
+		glDrawArrays( GL_TRIANGLES, 0, 3 );
+		
+//		glUniform4f( Color, 0.0, 0.0, 1.0, 1.0 );
+		
+		glBindVertexArray( vao[1] );
+//		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view2);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		
+		glFlush();
+		
+		
+		y = glutGet( GLUT_WINDOW_HEIGHT ) - y;
+		
+		unsigned char pixel[4];
+		glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+		if (pixel[0]==0 && pixel[1]==255 && pixel[2]==0){ std::cout << "First triangle"<<std::endl;
+//			triangle_id = 1;
+		}
+		else if (pixel[0]==0 && pixel[1]==0 && pixel[2]==255){ std::cout << "Second triangle"<<std::endl;
+//			triangle_id = 2;
+			
+		}
+//		else {triangle_id = 0; std::cout << "None"<<std::endl;}
+		
+		std::cout << "R: " << (int)pixel[0] << std::endl;
+		std::cout << "G: " << (int)pixel[1] << std::endl;
+		std::cout << "B: " << (int)pixel[2] << std::endl;
+		std::cout << std::endl;
+		
+		glutPostRedisplay(); //needed to avoid display of the content of the back buffer when some portion of the window is obscured
+	*/
+	}
+}
+
+//----------------------------------------------------------------------------
+
 void reshape( int w, int h )
 {
 	glViewport( 0, 0, w, h );
@@ -301,6 +443,7 @@ main( int argc, char **argv )
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(specialCallBack);
 	glutReshapeFunc(reshape);
+	glutMouseFunc( mouse );
 	
 	glutMainLoop();
 	return 0;
