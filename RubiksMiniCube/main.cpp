@@ -14,8 +14,11 @@ typedef vec4  color4;
 typedef vec4  point4;
 
 // Declare Vertex Array Object Array and Buffer Array
-GLuint vao[2];
-GLuint buffer[2]; // try it
+GLuint vao;
+GLuint buffer; // try it
+
+
+float rotationSpeed = 5;
 
 // Initialize Center of Gravity of the cubes
 vec3 centerOfGs[8] = {
@@ -237,14 +240,21 @@ struct Rubik
 		{-1,  1,  2, -1,  4, -1}
 	};
 	
+	int rotating = 0;
+	bool cubesToRotate[8] = {false,false,false,false,false,false,false,false};
+	int rotationAxe;
+	int remainingShuffle;
+	
 	void init()
 	{
-		model_view[8] = (RotateX( Theta[Xaxis] ) *
-						 RotateY( Theta[Yaxis] ) *
-						 RotateZ( Theta[Zaxis] ));
-		model_view[9] = (RotateZ( -Theta[Zaxis] ) *
-						 RotateY( -Theta[Yaxis] ) *
-						 RotateX( -Theta[Xaxis] ));
+		model_view[8] = mat4();
+		model_view[9] = mat4();
+		remainingShuffle = 50;
+	}
+	
+	void restart()
+	{
+		remainingShuffle = 50;
 	}
 	
 	int getQuad(int c, int f)
@@ -272,10 +282,15 @@ struct Rubik
 					cubes[c][2] = cubes[c][5];
 					cubes[c][5] = cubes[c][3];
 					cubes[c][3] = temp;
-					model_view[c] = model_view[8] *
-									RotateZ(90) *
-									model_view[9] *
-									model_view[c];
+					
+					rotationAxe = Zaxis;
+					rotating = 360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -291,11 +306,15 @@ struct Rubik
 					cubes[c][3] = cubes[c][4];
 					cubes[c][4] = cubes[c][2];
 					cubes[c][2] = temp;
-//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
-					model_view[c] = model_view[8] *
-					RotateX(90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Xaxis;
+					rotating = 360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -311,11 +330,15 @@ struct Rubik
 					cubes[c][1] = cubes[c][4];
 					cubes[c][4] = cubes[c][5];
 					cubes[c][5] = temp;
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
-					model_view[c] = model_view[8] *
-					RotateY(-90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Yaxis;
+					rotating = -360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -331,11 +354,15 @@ struct Rubik
 					cubes[c][5] = cubes[c][4];
 					cubes[c][4] = cubes[c][1];
 					cubes[c][1] = temp;
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
-					model_view[c] = model_view[8] *
-					RotateY(90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Yaxis;
+					rotating = 360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -350,10 +377,15 @@ struct Rubik
 					cubes[c][3] = cubes[c][5];
 					cubes[c][5] = cubes[c][2];
 					cubes[c][2] = temp;
-					model_view[c] = model_view[8] *
-					RotateZ(-90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Zaxis;
+					rotating = -360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -368,10 +400,15 @@ struct Rubik
 					cubes[c][2] = cubes[c][4];
 					cubes[c][4] = cubes[c][3];
 					cubes[c][3] = temp;
-					model_view[c] = model_view[8] *
-					RotateX(-90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Xaxis;
+					rotating = -360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -392,10 +429,15 @@ struct Rubik
 					cubes[c][3] = cubes[c][5];
 					cubes[c][5] = cubes[c][2];
 					cubes[c][2] = temp;
-					model_view[c] = model_view[8] *
-									RotateZ(-90) *
-									model_view[9] *
-									model_view[c];
+					
+					rotationAxe = Zaxis;
+					rotating = -360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -410,10 +452,15 @@ struct Rubik
 					cubes[c][2] = cubes[c][4];
 					cubes[c][4] = cubes[c][3];
 					cubes[c][3] = temp;
-					model_view[c] = model_view[8] *
-					RotateX(-90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Xaxis;
+					rotating = -360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -423,17 +470,20 @@ struct Rubik
 			{
 				if (cubes[c][2] != -1)
 				{
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][5];
 					cubes[c][5] = cubes[c][4];
 					cubes[c][4] = cubes[c][1];
 					cubes[c][1] = temp;
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
-					model_view[c] = model_view[8] *
-					RotateY(90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Yaxis;
+					rotating = 360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -443,17 +493,20 @@ struct Rubik
 			{
 				if (cubes[c][3] != -1)
 				{
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][1];
 					cubes[c][1] = cubes[c][4];
 					cubes[c][4] = cubes[c][5];
 					cubes[c][5] = temp;
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
-					model_view[c] = model_view[8] *
-					RotateY(-90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Yaxis;
+					rotating = -360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -468,10 +521,15 @@ struct Rubik
 					cubes[c][2] = cubes[c][5];
 					cubes[c][5] = cubes[c][3];
 					cubes[c][3] = temp;
-					model_view[c] = model_view[8] *
-					RotateZ(90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Zaxis;
+					rotating = 360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
 		}
@@ -487,13 +545,70 @@ struct Rubik
 					cubes[c][3] = cubes[c][4];
 					cubes[c][4] = cubes[c][2];
 					cubes[c][2] = temp;
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
-					model_view[c] = model_view[8] *
-					RotateX(90) *
-					model_view[9] *
-					model_view[c];
+					
+					rotationAxe = Xaxis;
+					rotating = 360;
+					
+					cubesToRotate[c] = true;
+				}
+				else
+				{
+					cubesToRotate[c] = false;
 				}
 			}
+		}
+	}
+	
+	mat4 rotation()
+	{
+		if (rotating < 0)
+		{
+			rotating+=rotationSpeed;
+			if (rotationAxe == Xaxis)
+			{
+				return RotateX(-rotationSpeed);
+			}
+			else if (rotationAxe == Yaxis)
+			{
+				return RotateY(-rotationSpeed);
+			}
+			else if (rotationAxe == Zaxis)
+			{
+				return RotateZ(-rotationSpeed);
+			}
+		}
+		else if (rotating > 0)
+		{
+			rotating-=rotationSpeed;
+			if (rotationAxe == Xaxis)
+			{
+				return RotateX(rotationSpeed);
+			}
+			else if (rotationAxe == Yaxis)
+			{
+				return RotateY(rotationSpeed);
+			}
+			else if (rotationAxe == Zaxis)
+			{
+				return RotateZ(rotationSpeed);
+			}
+		}
+		return mat4();
+	}
+	
+	void shuffle()
+	{
+		remainingShuffle--;
+		int cube = rand()%8;
+		int face = rand()%6;
+		int cw = rand()%2;
+		if (cw == 0)
+		{
+			rotateCounterCW(cube, face);
+		}
+		else
+		{
+			rotateCW(cube, face);
 		}
 	}
 };
@@ -517,12 +632,12 @@ init()
 	currentCubeColor = glGetUniformLocation( program, "cubeColor" );
 	
 	// Create a vertex array object
-	glGenVertexArrays( 2, vao );
+	glGenVertexArrays( 1, &vao );
 	
 	// create a cube
-	glBindVertexArray( vao[0] );
-	glGenBuffers( 1, &buffer[0]);
-	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
+	glBindVertexArray( vao );
+	glGenBuffers( 1, &buffer);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
 	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
 	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
@@ -536,24 +651,6 @@ init()
 	glEnableVertexAttribArray( vColor );
 	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	
-	// create axis
-	glBindVertexArray( vao[1] );
-	glGenBuffers( 1, &buffer[1]);
-	glBindBuffer( GL_ARRAY_BUFFER, buffer[1] );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(axisC)+sizeof(axisV), NULL, GL_STATIC_DRAW );
-	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(axisV), axisV );
-	glBufferSubData( GL_ARRAY_BUFFER, sizeof(axisV), sizeof(axisC), axisC );
-	
-	// set up shader variables
-	GLuint vPositionAxis = glGetAttribLocation( program, "vPosition" );
-	glEnableVertexAttribArray( vPositionAxis );
-	glVertexAttribPointer( vPositionAxis, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
-	
-	GLuint vColorAxis = glGetAttribLocation( program, "vColor" );
-	glEnableVertexAttribArray( vColorAxis );
-	glVertexAttribPointer( vColorAxis, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(axisV)));
-	
-	glLineWidth(10.0);
 	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 
 	// Set current program object
@@ -570,11 +667,15 @@ init()
 	glEnable( GL_DEPTH_TEST );
 	
 	// Set state variable "clear color" to clear buffer with.
-	glClearColor( 1.0, 1.0, 1.0, 1.0 );
+	glClearColor( 0.5, 0.5, 0.5, 1.0 );
 	
-	cout << "Initially dampening is enabled, polygone mode is fill," << endl;
-	cout << "object is sphere, scale is 0.5 and color is random." << endl;
-	cout << "Press 'h' for help" << endl;
+	cout << "Mouse commands:" << endl;
+	cout << "To rotate counter clockwise use mouse left button" << endl;
+	cout << "To rotate clockwise use mouse right button" << endl;
+	cout << "\nKeyboard commands:" << endl;
+	cout << "Use the arrow keys to rotate the Rubik's Cube" << endl;
+	cout << "s:\tshuffle" << endl;
+	cout << "q:\tquit" << endl;
 }
 
 //----------------------------------------------------------------------------
@@ -584,13 +685,22 @@ display( void )
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
+	if (_2x2.rotating == 0 && _2x2.remainingShuffle > 0)
+	{
+		_2x2.shuffle();
+	}
+	
 	//  Generate tha model-view matrix 0
-	glBindVertexArrayAPPLE(vao[0]);
 	for (int i = 0; i<8;i++)
 	{
+		if (_2x2.cubesToRotate[i])
+		{
+			model_view[i] = model_view[8] *
+							_2x2.rotation() *
+							model_view[9] *
+							model_view[i];
+		}
 		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
-//		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
 		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 	}
 	/*
@@ -621,18 +731,11 @@ void keyboard( unsigned char key,int x, int y )
 	// quits on 'q' command
 	if(key == 'Q' | key == 'q')
 		exit(0);
-	// prints command menu
-	if(key == 'H' | key == 'h')
+	if((key == 'S' | key == 's')
+	   && _2x2.remainingShuffle <= 0)
 	{
-		cout << "You can change scale, color, object, polygone mode," << endl;
-		cout << "dampening and acceleration from right click menu." << endl;
-		cout << "Keyboard commands:" << endl;
-		cout << "i\t\t\treturn to initial position" << endl;
-		cout << "Arrow up\t\tincrease velocity" << endl;
-		cout << "Arrow down\t\tdecrease velocity" << endl;
-		cout << "Arrow right\tincrease angular velocity" << endl;
-		cout << "Arrow left\t\tdecrease angular velocity" << endl;
-		cout << "q\t\t\tquit" << endl;
+		printf("Shuffling... \n");
+		_2x2.restart();
 	}
 	glutPostRedisplay();
 }
@@ -681,10 +784,10 @@ void mouse( int button, int state, int x, int y )
 	unsigned char pixel[4];
 	
 	if (state == GLUT_DOWN &&
-		(button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON))
+		(button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON)
+		&& _2x2.rotating == 0)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBindVertexArrayAPPLE(vao[0]);
 		for (int i = 0; i<8;i++)
 		{
 			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
@@ -694,8 +797,6 @@ void mouse( int button, int state, int x, int y )
 		
 		// openGL coordinate system starts from bottom left, not top left
 		glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-//		printf("x: %d y: %d\n",x,y);
-//		printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
 		
 		c = -1;
 		
@@ -785,51 +886,7 @@ void mouse( int button, int state, int x, int y )
 			else
 				_2x2.rotateCounterCW(c,f);
 		}
-/*
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-		printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
-*/
-//		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
-/*
-		//glDrawBuffer(GL_BACK);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//		glUniform4f( Color, 0.0, 1.0, 0.0, 1.0 );
-		
-		glBindVertexArray( vao[0] );
-//		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view1);
-		glDrawArrays( GL_TRIANGLES, 0, 3 );
-		
-//		glUniform4f( Color, 0.0, 0.0, 1.0, 1.0 );
-		
-		glBindVertexArray( vao[1] );
-//		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view2);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		
-		glFlush();
-		
-		
-		y = glutGet( GLUT_WINDOW_HEIGHT ) - y;
-		
-		unsigned char pixel[4];
-		glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
-		if (pixel[0]==0 && pixel[1]==255 && pixel[2]==0){ std::cout << "First triangle"<<std::endl;
-//			triangle_id = 1;
-		}
-		else if (pixel[0]==0 && pixel[1]==0 && pixel[2]==255){ std::cout << "Second triangle"<<std::endl;
-//			triangle_id = 2;
-			
-		}
-//		else {triangle_id = 0; std::cout << "None"<<std::endl;}
-		
-		std::cout << "R: " << (int)pixel[0] << std::endl;
-		std::cout << "G: " << (int)pixel[1] << std::endl;
-		std::cout << "B: " << (int)pixel[2] << std::endl;
-		std::cout << std::endl;
-		
-		glutPostRedisplay(); //needed to avoid display of the content of the back buffer when some portion of the window is obscured
-	*/
-		
+		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 	}
 }
 
