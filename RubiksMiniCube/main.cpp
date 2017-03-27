@@ -254,7 +254,6 @@ struct Rubik
 	
 	void rotateCW(int cube, int face)
 	{
-		printf("rotating");
 		int temp;
 		int quad = getQuad(cube, face);
 		if (quad == 0)
@@ -267,7 +266,7 @@ struct Rubik
 					cubes[c][1] = cubes[c][2];
 					cubes[c][2] = cubes[c][5];
 					cubes[c][5] = cubes[c][3];
-					cubes[c][1] = temp;
+					cubes[c][3] = temp;
 					model_view[c] = model_view[8] *
 									RotateZ(90) *
 									model_view[9] *
@@ -277,9 +276,28 @@ struct Rubik
 		}
 	}
 	
-	void rotateCounterCW(int quad)
+	void rotateCounterCW(int cube, int face)
 	{
-		
+		int temp;
+		int quad = getQuad(cube, face);
+		if (quad == 0)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][0] != -1)
+				{
+					temp = cubes[c][1];
+					cubes[c][1] = cubes[c][3];
+					cubes[c][3] = cubes[c][5];
+					cubes[c][5] = cubes[c][2];
+					cubes[c][2] = temp;
+					model_view[c] = model_view[8] *
+									RotateZ(-90) *
+									model_view[9] *
+									model_view[c];
+				}
+			}
+		}
 	}
 };
 
@@ -465,7 +483,8 @@ void mouse( int button, int state, int x, int y )
 	int f; //face
 	unsigned char pixel[4];
 	
-	if ( state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
+	if (state == GLUT_DOWN &&
+		(button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON))
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindVertexArrayAPPLE(vao[0]);
@@ -478,49 +497,49 @@ void mouse( int button, int state, int x, int y )
 		
 		// openGL coordinate system starts from bottom left, not top left
 		glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-		printf("x: %d y: %d\n",x,y);
-		printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
+//		printf("x: %d y: %d\n",x,y);
+//		printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
 		
 		c = -1;
 		
 		if      (pixel[0] == 255 && pixel[1] == 140 && pixel[2] ==    0) // orange
 		{
-			printf("orange\n");
+//			printf("orange\n");
 			c = 0;
 		}
 		else if (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
 		{
-			printf("red\n");
+//			printf("red\n");
 			c = 1;
 		}
 		else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] ==    0) // yellow
 		{
-			printf("yellow\n");
+//			printf("yellow\n");
 			c = 2;
 		}
 		else if (pixel[0] ==  00 && pixel[1] == 255 && pixel[2] ==    0) // green
 		{
-			printf("green\n");
+//			printf("green\n");
 			c = 3;
 		}
 		else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==  255) // blue
 		{
-			printf("blue\n");
+//			printf("blue\n");
 			c = 4;
 		}
 		else if (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==  255) // magenta
 		{
-			printf("magenta\n");
+//			printf("magenta\n");
 			c = 5;
 		}
 		else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==    0) // black
 		{
-			printf("black\n");
+//			printf("black\n");
 			c = 6;
 		}
 		else if (pixel[0] ==   0 && pixel[1] == 255 && pixel[2] ==  255) // cyan
 		{
-			printf("cyan\n");
+//			printf("cyan\n");
 			c = 7;
 		}
 		
@@ -532,39 +551,42 @@ void mouse( int button, int state, int x, int y )
 			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 			glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-			printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
+//			printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
 			
 			if      (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
 			{
-				printf("red\n");
+//				printf("red\n");
 				f = 0;
 			}
 			else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==  255) // blue
 			{
-				printf("blue\n");
+//				printf("blue\n");
 				f = 1;
 			}
 			else if (pixel[0] ==  00 && pixel[1] == 255 && pixel[2] ==    0) // green
 			{
-				printf("green\n");
+//				printf("green\n");
 				f = 2;
 			}
 			else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] ==    0) // yellow
 			{
-				printf("yellow\n");
+//				printf("yellow\n");
 				f = 3;
 			}
 			else if (pixel[0] == 255 && pixel[1] == 140 && pixel[2] ==    0) // orange
 			{
-				printf("orange\n");
+//				printf("orange\n");
 				f = 4;
 			}
 			else if (pixel[0] ==   0 && pixel[1] == 255 && pixel[2] ==  255) // cyan
 			{
-				printf("cyan\n");
+//				printf("cyan\n");
 				f = 5;
 			}
-			_2x2.rotateCW(c,f);
+			if (button == GLUT_LEFT_BUTTON)
+				_2x2.rotateCW(c,f);
+			else
+				_2x2.rotateCounterCW(c,f);
 		}
 /*
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
