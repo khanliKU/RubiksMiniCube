@@ -249,13 +249,19 @@ struct Rubik
 	
 	int getQuad(int c, int f)
 	{
-		return cubes[c][f];
+		for (int i=0; i<6 ; i++)
+		{
+			if (cubes[c][i] == f)
+				return i;
+		}
+		return -1;
 	}
 	
 	void rotateCW(int cube, int face)
 	{
 		int temp;
 		int quad = getQuad(cube, face);
+//printf("%d %d %d\n",cube,face,quad);
 		if (quad == 0)
 		{
 			for (int c = 0; c < 8; c++)
@@ -271,6 +277,26 @@ struct Rubik
 									RotateZ(90) *
 									model_view[9] *
 									model_view[c];
+				}
+			}
+		}
+		else if (quad == 1)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][1] != -1)
+				{
+//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][3];
+					cubes[c][3] = cubes[c][4];
+					cubes[c][4] = cubes[c][2];
+					cubes[c][2] = temp;
+//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateX(90) *
+					model_view[9] *
+					model_view[c];
 				}
 			}
 		}
@@ -295,6 +321,26 @@ struct Rubik
 									RotateZ(-90) *
 									model_view[9] *
 									model_view[c];
+				}
+			}
+		}
+		else if (quad == 1)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][1] != -1)
+				{
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][2];
+					cubes[c][2] = cubes[c][4];
+					cubes[c][4] = cubes[c][3];
+					cubes[c][3] = temp;
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateX(-90) *
+					model_view[9] *
+					model_view[c];
 				}
 			}
 		}
