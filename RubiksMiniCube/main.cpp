@@ -155,13 +155,12 @@ mat4 colorCast[9] = {
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
 int  Axis = Yaxis;
 
-GLfloat Theta[NumAxes] = { 0, 0, 0 }; // ??
-GLfloat ThetaOld[NumAxes] = { 0, 0, 0 };
+GLfloat Theta[NumAxes] = { 0, 0, 0 };
 
 //----------------------------------------------------------------------------
 
 // struct CUBE
-struct cube
+struct Cube
 {
 	int numberOfVertices = 36;
 	point4 vertices[36];
@@ -220,7 +219,72 @@ struct cube
 };
 
 // declare cube struct
-struct cube cube;
+struct Cube cube;
+
+//----------------------------------------------------------------------------
+
+struct Rubik
+{
+	// hangi kupun hangi yuzu, hangi ana yuze bakiyor
+	int cubes[8][6] = {
+		{ 0, -1,  2, -1, -1,  5},
+		{ 0, -1, -1,  3, -1,  5},
+		{ 0,  1, -1,  3 ,-1, -1},
+		{ 0,  1,  2, -1, -1, -1},
+		{-1, -1,  2, -1,  4,  5},
+		{-1, -1, -1,  3,  4,  5},
+		{-1,  1, -1,  3,  4, -1},
+		{-1,  1,  2, -1,  4, -1}
+	};
+	
+	void init()
+	{
+		model_view[8] = (RotateX( Theta[Xaxis] ) *
+						 RotateY( Theta[Yaxis] ) *
+						 RotateZ( Theta[Zaxis] ));
+		model_view[9] = (RotateZ( -Theta[Zaxis] ) *
+						 RotateY( -Theta[Yaxis] ) *
+						 RotateX( -Theta[Xaxis] ));
+	}
+	
+	int getQuad(int c, int f)
+	{
+		return cubes[c][f];
+	}
+	
+	void rotateCW(int cube, int face)
+	{
+		printf("rotating");
+		int temp;
+		int quad = getQuad(cube, face);
+		if (quad == 0)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][0] != -1)
+				{
+					temp = cubes[c][1];
+					cubes[c][1] = cubes[c][2];
+					cubes[c][2] = cubes[c][5];
+					cubes[c][5] = cubes[c][3];
+					cubes[c][1] = temp;
+					model_view[c] = model_view[8] *
+									RotateZ(90) *
+									model_view[9] *
+									model_view[c];
+				}
+			}
+		}
+	}
+	
+	void rotateCounterCW(int quad)
+	{
+		
+	}
+};
+
+// Rubik
+struct Rubik _2x2;
 
 //----------------------------------------------------------------------------
 
@@ -230,6 +294,7 @@ init()
 {
 	// generate cube
 	cube.generateCube();
+	_2x2.init();
 	
 	GLuint program = InitShader( "vshader.glsl", "fshader.glsl" );
 	ModelView = glGetUniformLocation( program, "ModelView" );
@@ -304,28 +369,13 @@ display( void )
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-//	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
+	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 	//  Generate tha model-view matrix 0
 	glBindVertexArrayAPPLE(vao[0]);
-	model_view[8] = (RotateX( Theta[Xaxis] ) *
-					 RotateY( Theta[Yaxis] ) *
-					 RotateZ( Theta[Zaxis] ));
-	model_view[9] = (RotateZ( -ThetaOld[Zaxis] ) *
-					 RotateY( -ThetaOld[Yaxis] ) *
-					 RotateX( -ThetaOld[Xaxis] ));
-	ThetaOld[Xaxis] = Theta[Xaxis];
-	ThetaOld[Yaxis] = Theta[Yaxis];
-	ThetaOld[Zaxis] = Theta[Zaxis];
 	for (int i = 0; i<8;i++)
 	{
-		model_view[i] = model_view[8] *
-//						Translate(centerOfGs[i]) *
-						mat4() *                    // <<<<<<<<<<<< rotation buraya
-//						Translate(centerOfGs[7-i]) *
-						model_view[9] *
-						model_view[i];
 		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
-		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
+//		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
 		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 	}
 	/*
@@ -391,6 +441,20 @@ void specialCallBack(int key, int x, int y)
 	// decrease velocity
 	if (key == GLUT_KEY_DOWN)
 		Theta[Xaxis]+=4;
+	
+	
+	model_view[8] = (RotateX( Theta[Xaxis] ) *
+					 RotateY( Theta[Yaxis] ) *
+					 RotateZ( Theta[Zaxis] ));
+	for (int i = 0; i<8;i++)
+	{
+		model_view[i] = model_view[8] *
+						model_view[9] *
+						model_view[i];
+	}
+	model_view[9] = (RotateZ( -Theta[Zaxis] ) *
+					 RotateY( -Theta[Yaxis] ) *
+					 RotateX( -Theta[Xaxis] ));
 }
 
 //----------------------------------------------------------------------------
@@ -500,6 +564,7 @@ void mouse( int button, int state, int x, int y )
 				printf("cyan\n");
 				f = 5;
 			}
+			_2x2.rotateCW(c,f);
 		}
 /*
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
