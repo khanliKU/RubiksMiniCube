@@ -261,7 +261,6 @@ struct Rubik
 	{
 		int temp;
 		int quad = getQuad(cube, face);
-//printf("%d %d %d\n",cube,face,quad);
 		if (quad == 0)
 		{
 			for (int c = 0; c < 8; c++)
@@ -300,6 +299,82 @@ struct Rubik
 				}
 			}
 		}
+		else if (quad == 2)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][2] != -1)
+				{
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][1];
+					cubes[c][1] = cubes[c][4];
+					cubes[c][4] = cubes[c][5];
+					cubes[c][5] = temp;
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateY(-90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 3)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][3] != -1)
+				{
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][5];
+					cubes[c][5] = cubes[c][4];
+					cubes[c][4] = cubes[c][1];
+					cubes[c][1] = temp;
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateY(90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 4)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][4] != -1)
+				{
+					temp = cubes[c][1];
+					cubes[c][1] = cubes[c][3];
+					cubes[c][3] = cubes[c][5];
+					cubes[c][5] = cubes[c][2];
+					cubes[c][2] = temp;
+					model_view[c] = model_view[8] *
+					RotateZ(-90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 5)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][5] != -1)
+				{
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][2];
+					cubes[c][2] = cubes[c][4];
+					cubes[c][4] = cubes[c][3];
+					cubes[c][3] = temp;
+					model_view[c] = model_view[8] *
+					RotateX(-90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
 	}
 	
 	void rotateCounterCW(int cube, int face)
@@ -330,15 +405,91 @@ struct Rubik
 			{
 				if (cubes[c][1] != -1)
 				{
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][2];
 					cubes[c][2] = cubes[c][4];
 					cubes[c][4] = cubes[c][3];
 					cubes[c][3] = temp;
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					model_view[c] = model_view[8] *
 					RotateX(-90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 2)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][2] != -1)
+				{
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][5];
+					cubes[c][5] = cubes[c][4];
+					cubes[c][4] = cubes[c][1];
+					cubes[c][1] = temp;
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateY(90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 3)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][3] != -1)
+				{
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][1];
+					cubes[c][1] = cubes[c][4];
+					cubes[c][4] = cubes[c][5];
+					cubes[c][5] = temp;
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateY(-90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 4)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][4] != -1)
+				{
+					temp = cubes[c][1];
+					cubes[c][1] = cubes[c][2];
+					cubes[c][2] = cubes[c][5];
+					cubes[c][5] = cubes[c][3];
+					cubes[c][3] = temp;
+					model_view[c] = model_view[8] *
+					RotateZ(90) *
+					model_view[9] *
+					model_view[c];
+				}
+			}
+		}
+		else if (quad == 5)
+		{
+			for (int c = 0; c < 8; c++)
+			{
+				if (cubes[c][5] != -1)
+				{
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					temp = cubes[c][0];
+					cubes[c][0] = cubes[c][3];
+					cubes[c][3] = cubes[c][4];
+					cubes[c][4] = cubes[c][2];
+					cubes[c][2] = temp;
+					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
+					model_view[c] = model_view[8] *
+					RotateX(90) *
 					model_view[9] *
 					model_view[c];
 				}
@@ -492,19 +643,19 @@ void specialCallBack(int key, int x, int y)
 {
 	// increase angular velocity
 	if (key == GLUT_KEY_RIGHT)
-		Theta[Zaxis]-=4;
+		Theta[Zaxis]-=9;
 	
 	// decrease angular velocity
 	if (key == GLUT_KEY_LEFT)
-		Theta[Zaxis]+=4;
+		Theta[Zaxis]+=9;
 	
 	// increase velocity
 	if (key == GLUT_KEY_UP)
-		Theta[Xaxis]-=4;
+		Theta[Xaxis]-=9;
 	
 	// decrease velocity
 	if (key == GLUT_KEY_DOWN)
-		Theta[Xaxis]+=4;
+		Theta[Xaxis]+=9;
 	
 	
 	model_view[8] = (RotateX( Theta[Xaxis] ) *
