@@ -19,14 +19,14 @@ GLuint buffer[2]; // try it
 
 // Initialize Center of Gravity of the cubes
 vec3 centerOfGs[8] = {
-	vec3( 0.25,  0.25 ,  0.25),
-	vec3( 0.25,  0.25 , -0.25),
-	vec3( 0.25, -0.25 ,  0.25),
-	vec3( 0.25, -0.25 , -0.25),
-	vec3(-0.25,  0.25 ,  0.25),
-	vec3(-0.25,  0.25 , -0.25),
-	vec3(-0.25, -0.25 ,  0.25),
-	vec3(-0.25, -0.25 , -0.25)
+	vec3( -0.25, -0.25,  0.25),
+	vec3( -0.25,  0.25,  0.25),
+	vec3(  0.25,  0.25,  0.25),
+	vec3(  0.25, -0.25,  0.25),
+	vec3( -0.25, -0.25, -0.25),
+	vec3( -0.25,  0.25, -0.25),
+	vec3(  0.25,  0.25, -0.25),
+	vec3(  0.25, -0.25, -0.25)
 };
 
 // Model-view and projection matrices uniform location
@@ -155,7 +155,7 @@ mat4 colorCast[9] = {
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
 int  Axis = Yaxis;
 
-GLfloat Theta[NumAxes] = { 15, -15, 0 }; // ??
+GLfloat Theta[NumAxes] = { 0, 0, 0 }; // ??
 GLfloat ThetaOld[NumAxes] = { 0, 0, 0 };
 
 //----------------------------------------------------------------------------
@@ -325,13 +325,14 @@ display( void )
 						model_view[9] *
 						model_view[i];
 		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
-//		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
+		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
 		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 	}
+	/*
 	glBindVertexArrayAPPLE(vao[1]);
 	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
 	glDrawArrays( GL_LINES, 0, 6);
-	
+	*/
 	glutSwapBuffers();
 }
 
@@ -396,33 +397,116 @@ void specialCallBack(int key, int x, int y)
 
 void mouse( int button, int state, int x, int y )
 {
+	int c; //cube
+	int f; //face
+	unsigned char pixel[4];
 	
 	if ( state == GLUT_DOWN && button == GLUT_LEFT_BUTTON)
 	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindVertexArrayAPPLE(vao[0]);
 		for (int i = 0; i<8;i++)
 		{
-			/*
-			model_view[i] = (RotateX( Theta[Xaxis] ) *
-							 RotateY( Theta[Yaxis] ) *
-							 RotateZ( Theta[Zaxis] ) *
-							 Translate( centerOfGs[i] ));
-			 */
 			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
 			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
 			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 		}
 		
-		unsigned char pixel[4];
-		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+		// openGL coordinate system starts from bottom left, not top left
+		glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+		printf("x: %d y: %d\n",x,y);
 		printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
 		
-		// ekranı sıfırla
+		c = -1;
+		
+		if      (pixel[0] == 255 && pixel[1] == 140 && pixel[2] ==    0) // orange
+		{
+			printf("orange\n");
+			c = 0;
+		}
+		else if (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
+		{
+			printf("red\n");
+			c = 1;
+		}
+		else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] ==    0) // yellow
+		{
+			printf("yellow\n");
+			c = 2;
+		}
+		else if (pixel[0] ==  00 && pixel[1] == 255 && pixel[2] ==    0) // green
+		{
+			printf("green\n");
+			c = 3;
+		}
+		else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==  255) // blue
+		{
+			printf("blue\n");
+			c = 4;
+		}
+		else if (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==  255) // magenta
+		{
+			printf("magenta\n");
+			c = 5;
+		}
+		else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==    0) // black
+		{
+			printf("black\n");
+			c = 6;
+		}
+		else if (pixel[0] ==   0 && pixel[1] == 255 && pixel[2] ==  255) // cyan
+		{
+			printf("cyan\n");
+			c = 7;
+		}
+		
+		if (c > -1)
+		{
+			// ekranı sıfırla
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[c] );
+			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
+			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+			glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+			printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
+			
+			if      (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
+			{
+				printf("red\n");
+				f = 0;
+			}
+			else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==  255) // blue
+			{
+				printf("blue\n");
+				f = 1;
+			}
+			else if (pixel[0] ==  00 && pixel[1] == 255 && pixel[2] ==    0) // green
+			{
+				printf("green\n");
+				f = 2;
+			}
+			else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] ==    0) // yellow
+			{
+				printf("yellow\n");
+				f = 3;
+			}
+			else if (pixel[0] == 255 && pixel[1] == 140 && pixel[2] ==    0) // orange
+			{
+				printf("orange\n");
+				f = 4;
+			}
+			else if (pixel[0] ==   0 && pixel[1] == 255 && pixel[2] ==  255) // cyan
+			{
+				printf("cyan\n");
+				f = 5;
+			}
+		}
+/*
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 		printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
-		
-		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
+*/
+//		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 /*
 		//glDrawBuffer(GL_BACK);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
