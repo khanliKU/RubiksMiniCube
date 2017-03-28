@@ -14,22 +14,22 @@ typedef vec4  color4;
 typedef vec4  point4;
 
 // Declare Vertex Array Object Array and Buffer Array
-GLuint vao;
-GLuint buffer; // try it
-
+GLuint vao[2];
+GLuint buffer[2]; // try it
+GLuint vPosition[2], vColor[2];
 
 float rotationSpeed = 5;
 
 // Initialize Center of Gravity of the cubes
 vec3 centerOfGs[8] = {
-	vec3( -0.25, -0.25,  0.25),
-	vec3( -0.25,  0.25,  0.25),
-	vec3(  0.25,  0.25,  0.25),
-	vec3(  0.25, -0.25,  0.25),
-	vec3( -0.25, -0.25, -0.25),
-	vec3( -0.25,  0.25, -0.25),
-	vec3(  0.25,  0.25, -0.25),
-	vec3(  0.25, -0.25, -0.25)
+	vec3( -0.27, -0.27,  0.27),
+	vec3( -0.27,  0.27,  0.27),
+	vec3(  0.27,  0.27,  0.27),
+	vec3(  0.27, -0.27,  0.27),
+	vec3( -0.27, -0.27, -0.27),
+	vec3( -0.27,  0.27, -0.27),
+	vec3(  0.27,  0.27, -0.27),
+	vec3(  0.27, -0.27, -0.27)
 };
 
 // Model-view and projection matrices uniform location
@@ -166,6 +166,8 @@ GLfloat Theta[NumAxes] = { 0, 0, 0 };
 struct Cube
 {
 	int numberOfVertices = 36;
+	int numberOfEdges = 24;
+	int edgeColor = BLACK;
 	point4 vertices[36];
 	color4 colors[36];
 	// Vertices of a cube centered at origin which fits in a unit sphere, sides aligned with axes
@@ -178,6 +180,36 @@ struct Cube
 		point4( -0.25,  0.25, -0.25, 1 ),
 		point4(  0.25,  0.25, -0.25, 1 ),
 		point4(  0.25, -0.25, -0.25, 1 )
+	};
+	
+	point4 edges[24] = {
+		initialVertices[0],initialVertices[1],
+		initialVertices[0],initialVertices[3],
+		initialVertices[0],initialVertices[4],
+		initialVertices[1],initialVertices[2],
+		initialVertices[1],initialVertices[5],
+		initialVertices[2],initialVertices[3],
+		initialVertices[2],initialVertices[6],
+		initialVertices[3],initialVertices[7],
+		initialVertices[4],initialVertices[5],
+		initialVertices[4],initialVertices[7],
+		initialVertices[6],initialVertices[5],
+		initialVertices[6],initialVertices[7]
+	};
+	
+	color4 edgeColors[24] = {
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor],
+		color[edgeColor],color[edgeColor]
 	};
 	
 	// quad generates two triangles for each face and assigns colors
@@ -632,26 +664,43 @@ init()
 	currentCubeColor = glGetUniformLocation( program, "cubeColor" );
 	
 	// Create a vertex array object
-	glGenVertexArrays( 1, &vao );
+	glGenVertexArrays( 2, vao );
 	
 	// create a cube
-	glBindVertexArray( vao );
-	glGenBuffers( 1, &buffer);
-	glBindBuffer( GL_ARRAY_BUFFER, buffer );
+	glBindVertexArray( vao[0] );
+	glGenBuffers( 1, &buffer[0]);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
 	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.vertices)+sizeof(cube.colors), NULL, GL_STATIC_DRAW );
 	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.vertices), cube.vertices );
 	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.vertices), sizeof(cube.colors), cube.colors );
 	
 	// set up shader variables
-	GLuint vPosition = glGetAttribLocation( program, "vPosition" );
-	glEnableVertexAttribArray( vPosition );
-	glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+	vPosition[0] = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition[0] );
+	glVertexAttribPointer( vPosition[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 	
-	GLuint vColor = glGetAttribLocation( program, "vColor" );
-	glEnableVertexAttribArray( vColor );
-	glVertexAttribPointer( vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
-	
+	vColor[0] = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColor[0] );
+	glVertexAttribPointer( vColor[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
+	
+	// create a edges
+	glBindVertexArray( vao[1] );
+	glGenBuffers( 1, &buffer[1]);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer[1] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(cube.edges) + sizeof(cube.edgeColors), NULL, GL_STATIC_DRAW );
+	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(cube.edges), cube.edges );
+	glBufferSubData( GL_ARRAY_BUFFER, sizeof(cube.edges), sizeof(cube.edgeColors), cube.edgeColors );
+	
+	vPosition[1] = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition[1] );
+	glVertexAttribPointer( vPosition[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+	
+	vColor[1] = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColor[1] );
+	glVertexAttribPointer( vColor[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
+	
+	glLineWidth(5);
 
 	// Set current program object
 	glUseProgram( program );
@@ -700,14 +749,18 @@ display( void )
 							model_view[9] *
 							model_view[i];
 		}
+		
+		glBindVertexArray( vao[0] );
 		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
+		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
+
+		glBindVertexArray( vao[1] );
+		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[BLACK]);
+		glDrawArrays( GL_LINES, 0, 24);
+		
 	}
-	/*
-	glBindVertexArrayAPPLE(vao[1]);
-	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
-	glDrawArrays( GL_LINES, 0, 6);
-	*/
+	
 	glutSwapBuffers();
 }
 
@@ -788,6 +841,7 @@ void mouse( int button, int state, int x, int y )
 		&& _2x2.rotating == 0)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBindVertexArray( vao[0] );
 		for (int i = 0; i<8;i++)
 		{
 			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
