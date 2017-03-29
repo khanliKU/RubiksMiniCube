@@ -14,9 +14,9 @@ typedef vec4  color4;
 typedef vec4  point4;
 
 // Declare Vertex Array Object Array and Buffer Array
-GLuint vao[2];
-GLuint buffer[2]; // try it
-GLuint vPosition[2], vColor[2];
+GLuint vao[3];
+GLuint buffer[3]; // try it
+GLuint vPosition[3], vColor[3];
 
 float rotationSpeed = 5;
 
@@ -162,6 +162,27 @@ GLfloat Theta[NumAxes] = { 0, 0, 0 };
 
 //----------------------------------------------------------------------------
 
+struct axis
+{
+	int numberOfVertices = 6;
+	point4 vertices[6] =
+	{
+		point4( 0, 0, 0, 1), point4( 1, 0, 0, 1),
+		point4( 0, 0, 0, 1), point4( 0, 1, 0, 1),
+		point4( 0, 0, 0, 1), point4( 0, 0, 1, 1)
+	};
+	color4 colors[6] =
+	{
+		color[BLUE],color[BLUE],
+		color[YELLOW],color[YELLOW],
+		color[RED],color[RED]
+	};
+};
+
+struct axis axis;
+
+//----------------------------------------------------------------------------
+
 // struct CUBE
 struct Cube
 {
@@ -281,7 +302,7 @@ struct Rubik
 	{
 		model_view[8] = mat4();
 		model_view[9] = mat4();
-		remainingShuffle = 50;
+		remainingShuffle = 0;
 	}
 	
 	void restart()
@@ -700,6 +721,22 @@ init()
 	glEnableVertexAttribArray( vColor[1] );
 	glVertexAttribPointer( vColor[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	
+	// create a axis
+	glBindVertexArray( vao[2] );
+	glGenBuffers( 1, &buffer[2]);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer[2] );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(axis.vertices) + sizeof(axis.colors), NULL, GL_STATIC_DRAW );
+	glBufferSubData( GL_ARRAY_BUFFER, 0, sizeof(axis.vertices), axis.vertices );
+	glBufferSubData( GL_ARRAY_BUFFER, sizeof(axis.vertices), sizeof(axis.colors), axis.colors );
+	
+	vPosition[2] = glGetAttribLocation( program, "vPosition" );
+	glEnableVertexAttribArray( vPosition[2] );
+	glVertexAttribPointer( vPosition[2], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
+	
+	vColor[2] = glGetAttribLocation( program, "vColor" );
+	glEnableVertexAttribArray( vColor[2] );
+	glVertexAttribPointer( vColor[2], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(axis.vertices)));
+	
 	glLineWidth(5);
 
 	// Set current program object
@@ -761,6 +798,11 @@ display( void )
 		
 	}
 	
+	glBindVertexArray( vao[2] );
+	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
+	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
+	glDrawArrays( GL_LINES, 0, axis.numberOfVertices);
+	
 	glutSwapBuffers();
 }
 
@@ -817,12 +859,14 @@ void specialCallBack(int key, int x, int y)
 	model_view[8] = (RotateX( Theta[Xaxis] ) *
 					 RotateY( Theta[Yaxis] ) *
 					 RotateZ( Theta[Zaxis] ));
+	
 	for (int i = 0; i<8;i++)
 	{
 		model_view[i] = model_view[8] *
 						model_view[9] *
 						model_view[i];
 	}
+	
 	model_view[9] = (RotateZ( -Theta[Zaxis] ) *
 					 RotateY( -Theta[Yaxis] ) *
 					 RotateX( -Theta[Xaxis] ));
