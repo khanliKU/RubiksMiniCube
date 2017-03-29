@@ -19,6 +19,7 @@ GLuint buffer[3]; // try it
 GLuint vPosition[3], vColor[3];
 
 float rotationSpeed = 5;
+bool enableAxis;
 
 // Initialize Center of Gravity of the cubes
 vec3 centerOfGs[8] = {
@@ -156,9 +157,6 @@ mat4 colorCast[9] = {
 
 // Array of rotation angles (in degrees) for each coordinate axis
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
-int  Axis = Yaxis;
-
-GLfloat Theta[NumAxes] = { 0, 0, 0 };
 
 //----------------------------------------------------------------------------
 
@@ -679,6 +677,8 @@ init()
 	cube.generateCube();
 	_2x2.init();
 	
+	enableAxis = false;
+	
 	GLuint program = InitShader( "vshader.glsl", "fshader.glsl" );
 	ModelView = glGetUniformLocation( program, "ModelView" );
 	Projection = glGetUniformLocation( program, "Projection" );
@@ -798,10 +798,13 @@ display( void )
 		
 	}
 	
-	glBindVertexArray( vao[2] );
-	glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
-	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
-	glDrawArrays( GL_LINES, 0, axis.numberOfVertices);
+	if (enableAxis)
+	{
+		glBindVertexArray( vao[2] );
+		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
+		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
+		glDrawArrays( GL_LINES, 0, axis.numberOfVertices);
+	}
 	
 	glutSwapBuffers();
 }
@@ -811,10 +814,12 @@ display( void )
 void
 idle( void )
 {
+	/*
 	if ( Theta[Axis] > 360.0 )
 	{
 		Theta[Axis] -= 360.0;
 	}
+	 */
 	glutPostRedisplay();
 	
 }
@@ -839,26 +844,28 @@ void keyboard( unsigned char key,int x, int y )
 
 void specialCallBack(int key, int x, int y)
 {
+	GLfloat Theta[NumAxes] = { 0, 0, 0 };
+	
 	// increase angular velocity
 	if (key == GLUT_KEY_RIGHT)
-		Theta[Zaxis]-=9;
+		Theta[Yaxis]-=rotationSpeed;
 	
 	// decrease angular velocity
 	if (key == GLUT_KEY_LEFT)
-		Theta[Zaxis]+=9;
+		Theta[Yaxis]+=rotationSpeed;
 	
 	// increase velocity
 	if (key == GLUT_KEY_UP)
-		Theta[Xaxis]-=9;
+		Theta[Xaxis]-=rotationSpeed;
 	
 	// decrease velocity
 	if (key == GLUT_KEY_DOWN)
-		Theta[Xaxis]+=9;
+		Theta[Xaxis]+=rotationSpeed;
 	
 	
 	model_view[8] = (RotateX( Theta[Xaxis] ) *
 					 RotateY( Theta[Yaxis] ) *
-					 RotateZ( Theta[Zaxis] ));
+					 RotateZ( Theta[Zaxis] )) * model_view[8];
 	
 	for (int i = 0; i<8;i++)
 	{
@@ -867,7 +874,7 @@ void specialCallBack(int key, int x, int y)
 						model_view[i];
 	}
 	
-	model_view[9] = (RotateZ( -Theta[Zaxis] ) *
+	model_view[9] = model_view[9] * (RotateZ( -Theta[Zaxis] ) *
 					 RotateY( -Theta[Yaxis] ) *
 					 RotateX( -Theta[Xaxis] ));
 }
