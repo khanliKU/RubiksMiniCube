@@ -21,6 +21,8 @@ GLuint vPosition[3], vColor[3];
 float rotationSpeed = 5;
 bool enableAxis;
 
+int window[2] = {512,512};
+
 // Initialize Center of Gravity of the cubes
 vec3 centerOfGs[8] = {
 	vec3( -0.27, -0.27,  0.27),
@@ -848,11 +850,11 @@ void specialCallBack(int key, int x, int y)
 	
 	// increase angular velocity
 	if (key == GLUT_KEY_RIGHT)
-		Theta[Yaxis]-=rotationSpeed;
+		Theta[Yaxis]+=rotationSpeed;
 	
 	// decrease angular velocity
 	if (key == GLUT_KEY_LEFT)
-		Theta[Yaxis]+=rotationSpeed;
+		Theta[Yaxis]-=rotationSpeed;
 	
 	// increase velocity
 	if (key == GLUT_KEY_UP)
@@ -901,7 +903,7 @@ void mouse( int button, int state, int x, int y )
 		}
 		
 		// openGL coordinate system starts from bottom left, not top left
-		glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+		glReadPixels(x, window[1] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 		
 		c = -1;
 		
@@ -953,7 +955,7 @@ void mouse( int button, int state, int x, int y )
 			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[c] );
 			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
-			glReadPixels(x,500-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+			glReadPixels(x,window[1] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 //			printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
 			
 			if      (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
@@ -1001,6 +1003,9 @@ void reshape( int w, int h )
 {
 	glViewport( 0, 0, w, h );
 	
+	window[0] = w;
+	window[1] = h;
+	
 	mat4  projection;
 	if (w <= h)
 		projection = Ortho(-1.0, 1.0, -1.0 * (GLfloat) h / (GLfloat) w,
@@ -1021,7 +1026,7 @@ main( int argc, char **argv )
 {
 	glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH );
-	glutInitWindowSize( 512, 512 );
+	glutInitWindowSize( window[0], window[1] );
 	glutCreateWindow( "Rubik's Mini Cube" );
 	
 	init();
