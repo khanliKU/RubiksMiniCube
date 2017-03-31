@@ -23,64 +23,12 @@ bool enableAxis;
 
 int window[2] = {512,512};
 
-// Initialize Center of Gravity of the cubes
-vec3 centerOfGs[8] = {
-	vec3( -0.27, -0.27,  0.27),
-	vec3( -0.27,  0.27,  0.27),
-	vec3(  0.27,  0.27,  0.27),
-	vec3(  0.27, -0.27,  0.27),
-	vec3( -0.27, -0.27, -0.27),
-	vec3( -0.27,  0.27, -0.27),
-	vec3(  0.27,  0.27, -0.27),
-	vec3(  0.27, -0.27, -0.27)
-};
-
 // Model-view and projection matrices uniform location
 GLuint  ModelView, Projection;
-mat4  model_view[10] = {
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[0]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[1]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[2]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[3]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[4]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[5]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[6]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[7]),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0),
-	mat4(1.0, 0.0, 0.0, 0.0,
-		 0.0, 1.0, 0.0, 0.0,
-		 0.0, 0.0, 1.0, 0.0,
-		 0.0, 0.0, 0.0, 1.0)
-};
 
-// Declare uniform cariable to be passed to Fragment Shader
+GLuint initialView;
+
+// Declare uniform variable to be passed to Fragment Shader
 GLuint currentCubeColor;
 int currentCube;
 
@@ -96,25 +44,6 @@ color4 color[8] = {
 	color4( 1.0, 0.0, 1.0, 1.0 ),    // magenta
 	color4( 0.0, 0.0, 0.0, 1.0 ),    // black
 	color4( 0.0, 1.0, 1.0, 1.0 )    // cyan
-};
-
-// Axis
-point4 axisV[6] = {
-	point4(0.0, 0.0, 0.0, 1.0),
-	point4(1.0, 0.0, 0.0, 1.0),
-	point4(0.0, 0.0, 0.0, 1.0),
-	point4(0.0, 1.0, 0.0, 1.0),
-	point4(0.0, 0.0, 0.0, 1.0),
-	point4(0.0, 0.0, 1.0, 1.0)
-};
-
-color4 axisC[6] = {
-	color[MAGENTA],
-	color[MAGENTA],
-	color[BLUE],
-	color[BLUE],
-	color[BLACK],
-	color[BLACK]
 };
 
 // color castig array
@@ -281,8 +210,74 @@ struct Cube cube;
 
 struct Rubik
 {
+	// Initialize Center of Gravity of the cubes
+	vec3 centerOfGs[8] = {
+		vec3( -0.27, -0.27,  0.27),
+		vec3( -0.27,  0.27,  0.27),
+		vec3(  0.27,  0.27,  0.27),
+		vec3(  0.27, -0.27,  0.27),
+		vec3( -0.27, -0.27, -0.27),
+		vec3( -0.27,  0.27, -0.27),
+		vec3(  0.27,  0.27, -0.27),
+		vec3(  0.27, -0.27, -0.27)
+	};
+	
+	mat4  model_view[10] = {
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[0]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[1]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[2]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[3]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[4]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[5]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[6]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0) * Translate(centerOfGs[7]),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0),
+		mat4(1.0, 0.0, 0.0, 0.0,
+			 0.0, 1.0, 0.0, 0.0,
+			 0.0, 0.0, 1.0, 0.0,
+			 0.0, 0.0, 0.0, 1.0)
+	};
+	
 	// hangi kupun hangi yuzu, hangi ana yuze bakiyor
 	int cubes[8][6] = {
+		{ 0, -1,  2, -1, -1,  5},
+		{ 0, -1, -1,  3, -1,  5},
+		{ 0,  1, -1,  3 ,-1, -1},
+		{ 0,  1,  2, -1, -1, -1},
+		{-1, -1,  2, -1,  4,  5},
+		{-1, -1, -1,  3,  4,  5},
+		{-1,  1, -1,  3,  4, -1},
+		{-1,  1,  2, -1,  4, -1}
+	};
+	
+	int initialCubes[8][6] ={
 		{ 0, -1,  2, -1, -1,  5},
 		{ 0, -1, -1,  3, -1,  5},
 		{ 0,  1, -1,  3 ,-1, -1},
@@ -664,6 +659,21 @@ struct Rubik
 			rotateCW(cube, face);
 		}
 	}
+	
+	void reset()
+	{
+		if (rotating == 0 && remainingShuffle == 0)
+		{
+			for (int c = 0; c < 8 ; c++)
+			{
+				for (int f = 0; f < 6 ; f++)
+				{
+					cubes[c][f] = initialCubes[c][f];
+				}
+				model_view[c] = model_view[8] * Translate(centerOfGs[c]);
+			}
+		}
+	}
 };
 
 // Rubik
@@ -685,6 +695,8 @@ init()
 	ModelView = glGetUniformLocation( program, "ModelView" );
 	Projection = glGetUniformLocation( program, "Projection" );
 	currentCubeColor = glGetUniformLocation( program, "cubeColor" );
+	initialView = glGetUniformLocation(program, "initialView");
+	glUniformMatrix4fv( initialView, 1,GL_TRUE, RotateX(45) * RotateY(45));
 	
 	// Create a vertex array object
 	glGenVertexArrays( 2, vao );
@@ -763,6 +775,7 @@ init()
 	cout << "\nKeyboard commands:" << endl;
 	cout << "Use the arrow keys to rotate the Rubik's Cube" << endl;
 	cout << "s:\tshuffle" << endl;
+	cout << "r:\treset" << endl;
 	cout << "q:\tquit" << endl;
 }
 
@@ -783,14 +796,14 @@ display( void )
 	{
 		if (_2x2.cubesToRotate[i])
 		{
-			model_view[i] = model_view[8] *
+			_2x2.model_view[i] = _2x2.model_view[8] *
 							_2x2.rotation() *
-							model_view[9] *
-							model_view[i];
+							_2x2.model_view[9] *
+							_2x2.model_view[i];
 		}
 		
 		glBindVertexArray( vao[0] );
-		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
+		glUniformMatrix4fv( ModelView, 1, GL_TRUE, _2x2.model_view[i] );
 		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 		glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 
@@ -803,7 +816,7 @@ display( void )
 	if (enableAxis)
 	{
 		glBindVertexArray( vao[2] );
-		glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[8] );
+		glUniformMatrix4fv( ModelView, 1, GL_TRUE, _2x2.model_view[8] );
 		glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 		glDrawArrays( GL_LINES, 0, axis.numberOfVertices);
 	}
@@ -816,14 +829,7 @@ display( void )
 void
 idle( void )
 {
-	/*
-	if ( Theta[Axis] > 360.0 )
-	{
-		Theta[Axis] -= 360.0;
-	}
-	 */
 	glutPostRedisplay();
-	
 }
 
 //----------------------------------------------------------------------------
@@ -832,12 +838,17 @@ void keyboard( unsigned char key,int x, int y )
 {
 	// quits on 'q' command
 	if(key == 'Q' | key == 'q')
+	{
 		exit(0);
-	if((key == 'S' | key == 's')
+	}
+	else if((key == 'S' | key == 's')
 	   && _2x2.remainingShuffle <= 0)
 	{
 		printf("Shuffling... \n");
 		_2x2.restart();
+	} else if (key == 'R' | key == 'r')
+	{
+		_2x2.reset();
 	}
 	glutPostRedisplay();
 }
@@ -865,20 +876,20 @@ void specialCallBack(int key, int x, int y)
 		Theta[Xaxis]+=rotationSpeed;
 	
 	
-	model_view[8] = (RotateX( Theta[Xaxis] ) *
-					 RotateY( Theta[Yaxis] ) *
-					 RotateZ( Theta[Zaxis] )) * model_view[8];
+	_2x2.model_view[8] = (RotateX( Theta[Xaxis] ) *
+						  RotateY( Theta[Yaxis] ) *
+						  RotateZ( Theta[Zaxis] )) * _2x2.model_view[8];
 	
 	for (int i = 0; i<8;i++)
 	{
-		model_view[i] = model_view[8] *
-						model_view[9] *
-						model_view[i];
+		_2x2.model_view[i] = _2x2.model_view[8] *
+							_2x2.model_view[9] *
+							_2x2.model_view[i];
 	}
 	
-	model_view[9] = model_view[9] * (RotateZ( -Theta[Zaxis] ) *
-					 RotateY( -Theta[Yaxis] ) *
-					 RotateX( -Theta[Xaxis] ));
+	_2x2.model_view[9] = _2x2.model_view[9] * (RotateZ( -Theta[Zaxis] ) *
+											   RotateY( -Theta[Yaxis] ) *
+											   RotateX( -Theta[Xaxis] ));
 }
 
 //----------------------------------------------------------------------------
@@ -897,7 +908,7 @@ void mouse( int button, int state, int x, int y )
 		glBindVertexArray( vao[0] );
 		for (int i = 0; i<8;i++)
 		{
-			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[i] );
+			glUniformMatrix4fv( ModelView, 1, GL_TRUE, _2x2.model_view[i] );
 			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[i]);
 			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 		}
@@ -952,7 +963,7 @@ void mouse( int button, int state, int x, int y )
 		{
 			// ekranı sıfırla
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view[c] );
+			glUniformMatrix4fv( ModelView, 1, GL_TRUE, _2x2.model_view[c] );
 			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 			glReadPixels(x,window[1] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
