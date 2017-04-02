@@ -13,28 +13,25 @@ using namespace std;
 typedef vec4  color4;
 typedef vec4  point4;
 
-// Declare Vertex Array Object Array and Buffer Array
+// Declare Vertex Array Object Arrays and Buffer Arrays
 GLuint vao[3];
 GLuint buffer[3]; // try it
-GLuint vPosition[3], vColor[3];
 
+// Rotation animation speed
 float rotationSpeed = 5;
-bool enableAxis;
 
 int window[2] = {512,512};
 
-// Model-view and projection matrices uniform location
-GLuint  ModelView, Projection;
+// Model-view, projection and current c ube color matrices uniform location
+GLuint  ModelView, Projection, currentCubeColor;
 
-GLuint initialView;
+// Declare uniform variables to be passed to Shaders
+GLuint vPosition[3], vColor[3];
 
-// Declare uniform variable to be passed to Fragment Shader
-GLuint currentCubeColor;
-int currentCube;
-
-// RGBA olors
 // enumerate colors and create a color4 array as colors array
 enum color {ORANGE,RED,YELLOW,GREEN,BLUE,MAGENTA,BLACK,CYAN,NEUTRAL};
+
+// RGBA olors
 color4 color[8] = {
 	color4( 1.0, 0.549, 0.0, 1.0 ),  // orange
 	color4( 1.0, 0.0, 0.0, 1.0 ),    // red
@@ -46,7 +43,12 @@ color4 color[8] = {
 	color4( 0.0, 1.0, 1.0, 1.0 )    // cyan
 };
 
-// color castig array
+//
+/*
+ * color castig array
+ * These 4x4 matrices are used for the picking algorithm
+ *
+ */
 mat4 colorCast[9] = {
 	mat4(0.0, 0.0, 0.0, 1.0, // orange
 		 0.0, 0.0, 0.0, 0.549,
@@ -86,13 +88,19 @@ mat4 colorCast[9] = {
 		 0.0, 0.0, 0.0, 1.0)
 };
 
-// Array of rotation angles (in degrees) for each coordinate axis
+// Axis enumeration
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
 
 //----------------------------------------------------------------------------
 
+
+/*
+ * Axis struct
+ * contains i, j, k unit vectors with different colors.
+ */
 struct axis
 {
+	bool enableAxis;
 	int numberOfVertices = 6;
 	point4 vertices[6] =
 	{
@@ -120,7 +128,7 @@ struct Cube
 	int edgeColor = BLACK;
 	point4 vertices[36];
 	color4 colors[36];
-	// Vertices of a cube centered at origin which fits in a unit sphere, sides aligned with axes
+	// Vertices of a cube centered at origin
 	point4 initialVertices[8] = {
 		point4( -0.25, -0.25,  0.25, 1 ),
 		point4( -0.25,  0.25,  0.25, 1 ),
@@ -208,6 +216,11 @@ struct Cube cube;
 
 //----------------------------------------------------------------------------
 
+/*
+ * Rubik struct
+ * Holds the necessary information about cube location and orientations
+ * in a 2x2x2 Rubik's cube.
+ */
 struct Rubik
 {
 	// Initialize Center of Gravity of the cubes
@@ -222,6 +235,9 @@ struct Rubik
 		vec3(  0.27, -0.27, -0.27)
 	};
 	
+	// Initialize Model Views of the cubes [0-7]
+	// General view orientation [8]
+	// Inverse of general view orientation [9]
 	mat4  model_view[10] = {
 		mat4(1.0, 0.0, 0.0, 0.0,
 			 0.0, 1.0, 0.0, 0.0,
@@ -265,7 +281,18 @@ struct Rubik
 			 0.0, 0.0, 0.0, 1.0)
 	};
 	
-	// hangi kupun hangi yuzu, hangi ana yuze bakiyor
+	/*
+	 * THIS IS WHERE THE MAGIC HAPPENS
+	 *
+	 * cubes 2d array hold the information about which face of a given cube
+	 * is facing which face of the Rubik's Cube
+	 *
+	 * Each line represents a cubes orientation.
+	 * Each column represents a face of a cube.
+	 * -1 means that face of the cube is not visible (facing inward in Rubik's Cube)
+	 * cubes[0][1] = 2 means that 1st face of the 0th cube is facing 2nd face of the rubisk cube
+	 * (not the case in initial conditions just an example)
+	 */
 	int cubes[8][6] = {
 		{ 0, -1,  2, -1, -1,  5},
 		{ 0, -1, -1,  3, -1,  5},
@@ -288,11 +315,20 @@ struct Rubik
 		{-1,  1,  2, -1,  4, -1}
 	};
 	
+	// Remaining rotation in degrees
+	// implemented this way because of animation issues
 	int rotating = 0;
+	
+	// cubes to rotate on a user command
 	bool cubesToRotate[8] = {false,false,false,false,false,false,false,false};
+	
+	// rotation axe specified by the user
 	int rotationAxe;
+	
+	// number of random rotations remaining
 	int remainingShuffle;
 	
+	// initializer
 	void init()
 	{
 		model_view[8] = mat4();
@@ -300,11 +336,13 @@ struct Rubik
 		remainingShuffle = 0;
 	}
 	
+	// sets remainingShuffle to 50
 	void restart()
 	{
 		remainingShuffle = 50;
 	}
 	
+	// given cube and face returns which face of the Rubik's Cube is selected
 	int getQuad(int c, int f)
 	{
 		for (int i=0; i<6 ; i++)
@@ -315,6 +353,13 @@ struct Rubik
 		return -1;
 	}
 	
+	/*
+	 * Clockwise rotation algorithm
+	 *
+	 * Uses getQuad to determine which face is clicked
+	 * Has a different sequence for all 6 faces of the Rubik's cube.
+	 * Modifies cubes 2x2 array, cubesToRotate and rotating as accordingly
+	 */
 	void rotateCW(int cube, int face)
 	{
 		int temp;
@@ -348,7 +393,6 @@ struct Rubik
 			{
 				if (cubes[c][1] != -1)
 				{
-//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][3];
 					cubes[c][3] = cubes[c][4];
@@ -372,7 +416,6 @@ struct Rubik
 			{
 				if (cubes[c][2] != -1)
 				{
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][1];
 					cubes[c][1] = cubes[c][4];
@@ -396,7 +439,6 @@ struct Rubik
 			{
 				if (cubes[c][3] != -1)
 				{
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][5];
 					cubes[c][5] = cubes[c][4];
@@ -462,6 +504,13 @@ struct Rubik
 		}
 	}
 	
+	/*
+	 * Counter clockwise rotation algorithm
+	 *
+	 * Uses getQuad to determine which face is clicked
+	 * Has a different sequence for all 6 faces of the Rubik's cube.
+	 * Modifies cubes 2x2 array, cubesToRotate and rotating as accordingly
+	 */
 	void rotateCounterCW(int cube, int face)
 	{
 		int temp;
@@ -587,7 +636,6 @@ struct Rubik
 			{
 				if (cubes[c][5] != -1)
 				{
-					//					printf("%d %d %d %d %d\n",c,cubes[c][0],cubes[c][2],cubes[c][3],cubes[c][4]);
 					temp = cubes[c][0];
 					cubes[c][0] = cubes[c][3];
 					cubes[c][3] = cubes[c][4];
@@ -607,6 +655,7 @@ struct Rubik
 		}
 	}
 	
+	// returns the appropriate rotation matrix for rotating and rotation axis parameters.
 	mat4 rotation()
 	{
 		if (rotating < 0)
@@ -644,6 +693,7 @@ struct Rubik
 		return mat4();
 	}
 	
+	// generates random rotations
 	void shuffle()
 	{
 		remainingShuffle--;
@@ -660,6 +710,7 @@ struct Rubik
 		}
 	}
 	
+	// resets the Rubik's Cube to initial state
 	void reset()
 	{
 		if (rotating == 0 && remainingShuffle == 0)
@@ -687,21 +738,24 @@ init()
 {
 	// generate cube
 	cube.generateCube();
+	
+	// initialize Rubik's Cube
 	_2x2.init();
 	
-	enableAxis = false;
+	// enable or disable Axis
+	axis.enableAxis = false;
 	
 	GLuint program = InitShader( "vshader.glsl", "fshader.glsl" );
 	ModelView = glGetUniformLocation( program, "ModelView" );
 	Projection = glGetUniformLocation( program, "Projection" );
 	currentCubeColor = glGetUniformLocation( program, "cubeColor" );
-	initialView = glGetUniformLocation(program, "initialView");
-	glUniformMatrix4fv( initialView, 1,GL_TRUE, RotateX(45) * RotateY(45));
 	
 	// Create a vertex array object
 	glGenVertexArrays( 2, vao );
 	
+	// --------------------------------------------------------------------------
 	// create a cube
+	
 	glBindVertexArray( vao[0] );
 	glGenBuffers( 1, &buffer[0]);
 	glBindBuffer( GL_ARRAY_BUFFER, buffer[0] );
@@ -719,7 +773,9 @@ init()
 	glVertexAttribPointer( vColor[0], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, mat4());
 	
+	// --------------------------------------------------------------------------
 	// create a edges
+	
 	glBindVertexArray( vao[1] );
 	glGenBuffers( 1, &buffer[1]);
 	glBindBuffer( GL_ARRAY_BUFFER, buffer[1] );
@@ -735,7 +791,9 @@ init()
 	glEnableVertexAttribArray( vColor[1] );
 	glVertexAttribPointer( vColor[1], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(cube.vertices)));
 	
+	// --------------------------------------------------------------------------
 	// create a axis
+	
 	glBindVertexArray( vao[2] );
 	glGenBuffers( 1, &buffer[2]);
 	glBindBuffer( GL_ARRAY_BUFFER, buffer[2] );
@@ -751,6 +809,7 @@ init()
 	glEnableVertexAttribArray( vColor[2] );
 	glVertexAttribPointer( vColor[2], 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(axis.vertices)));
 	
+	// set linewidth
 	glLineWidth(5);
 
 	// Set current program object
@@ -759,8 +818,6 @@ init()
 	// Set projection matrix
 	mat4  projection;
 	projection = Ortho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-	// Ortho(): user-defined function in mat.h
-	//projection = Perspective( 45.0, 1.0, 0.5, 3.0 );
 	glUniformMatrix4fv( Projection, 1, GL_TRUE, projection );
 	
 	// Enable hiddden surface removal
@@ -786,12 +843,14 @@ display( void )
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+	// perform rotation if needed
 	if (_2x2.rotating == 0 && _2x2.remainingShuffle > 0)
 	{
 		_2x2.shuffle();
 	}
 	
-	//  Generate tha model-view matrix 0
+	// Generate tha model-view matrix i for cube i
+	// display cube
 	for (int i = 0; i<8;i++)
 	{
 		if (_2x2.cubesToRotate[i])
@@ -813,7 +872,8 @@ display( void )
 		
 	}
 	
-	if (enableAxis)
+	// display axis
+	if (axis.enableAxis)
 	{
 		glBindVertexArray( vao[2] );
 		glUniformMatrix4fv( ModelView, 1, GL_TRUE, _2x2.model_view[8] );
@@ -857,6 +917,7 @@ void keyboard( unsigned char key,int x, int y )
 
 void specialCallBack(int key, int x, int y)
 {
+	// Array of rotation angles (in degrees) for each coordinate axis
 	GLfloat Theta[NumAxes] = { 0, 0, 0 };
 	
 	// increase angular velocity
@@ -875,6 +936,7 @@ void specialCallBack(int key, int x, int y)
 	if (key == GLUT_KEY_DOWN)
 		Theta[Xaxis]+=rotationSpeed;
 	
+	// perform rotation accordingly
 	
 	_2x2.model_view[8] = (RotateX( Theta[Xaxis] ) *
 						  RotateY( Theta[Yaxis] ) *
@@ -894,10 +956,23 @@ void specialCallBack(int key, int x, int y)
 
 //----------------------------------------------------------------------------
 
+/*
+ * Picking algorithm
+ 
+ * Uses colorCast array and currentCubeColor uniform location.
+ * When user clicks on the cube first draws all cubes in a different collor
+ * then gets the pixel that is clicked, checks its color.
+ * if that color is a valid color then only draws that cube with different colors
+ * on each face. Then gets the pixel with the same location. Checks the color
+ * and calls rotates:
+ * Counter clockwise if left button
+ * Clockwise if the right button.
+ */
+
 void mouse( int button, int state, int x, int y )
 {
-	int c; //cube
-	int f; //face
+	int c = -1; //cube
+	int f = -1; //face
 	unsigned char pixel[4];
 	
 	if (state == GLUT_DOWN &&
@@ -916,46 +991,36 @@ void mouse( int button, int state, int x, int y )
 		// openGL coordinate system starts from bottom left, not top left
 		glReadPixels(x, window[1] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 		
-		c = -1;
-		
 		if      (pixel[0] == 255 && pixel[1] == 140 && pixel[2] ==    0) // orange
 		{
-//			printf("orange\n");
 			c = 0;
 		}
 		else if (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
 		{
-//			printf("red\n");
 			c = 1;
 		}
 		else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] ==    0) // yellow
 		{
-//			printf("yellow\n");
 			c = 2;
 		}
 		else if (pixel[0] ==  00 && pixel[1] == 255 && pixel[2] ==    0) // green
 		{
-//			printf("green\n");
 			c = 3;
 		}
 		else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==  255) // blue
 		{
-//			printf("blue\n");
 			c = 4;
 		}
 		else if (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==  255) // magenta
 		{
-//			printf("magenta\n");
 			c = 5;
 		}
 		else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==    0) // black
 		{
-//			printf("black\n");
 			c = 6;
 		}
 		else if (pixel[0] ==   0 && pixel[1] == 255 && pixel[2] ==  255) // cyan
 		{
-//			printf("cyan\n");
 			c = 7;
 		}
 		
@@ -967,38 +1032,32 @@ void mouse( int button, int state, int x, int y )
 			glUniformMatrix4fv( currentCubeColor, 1,GL_TRUE, colorCast[NEUTRAL]);
 			glDrawArrays( GL_TRIANGLES, 0, cube.numberOfVertices);
 			glReadPixels(x,window[1] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-//			printf("R: %d G: %d B: %d A: %d\n",pixel[0],pixel[1],pixel[2],pixel[3]);
 			
 			if      (pixel[0] == 255 && pixel[1] ==   0 && pixel[2] ==    0) // red
 			{
-//				printf("red\n");
 				f = 0;
 			}
 			else if (pixel[0] ==   0 && pixel[1] ==   0 && pixel[2] ==  255) // blue
 			{
-//				printf("blue\n");
 				f = 1;
 			}
 			else if (pixel[0] ==  00 && pixel[1] == 255 && pixel[2] ==    0) // green
 			{
-//				printf("green\n");
 				f = 2;
 			}
 			else if (pixel[0] == 255 && pixel[1] == 255 && pixel[2] ==    0) // yellow
 			{
-//				printf("yellow\n");
 				f = 3;
 			}
 			else if (pixel[0] == 255 && pixel[1] == 140 && pixel[2] ==    0) // orange
 			{
-//				printf("orange\n");
 				f = 4;
 			}
 			else if (pixel[0] ==   0 && pixel[1] == 255 && pixel[2] ==  255) // cyan
 			{
-//				printf("cyan\n");
 				f = 5;
 			}
+			
 			if (button == GLUT_LEFT_BUTTON)
 				_2x2.rotateCW(c,f);
 			else
@@ -1024,10 +1083,6 @@ void reshape( int w, int h )
 	else  projection = Ortho(-1.0* (GLfloat) w / (GLfloat) h, 1.0 *
 							 (GLfloat) w / (GLfloat) h, -1.0, 1.0, -1.0, 1.0);
 	glUniformMatrix4fv( Projection, 1, GL_TRUE, projection );
-	if (float(h)/float(w) > 1)
-	{
-//		maxAllowedDept = float(h)/float(w);
-	}
 }
 
 //----------------------------------------------------------------------------
